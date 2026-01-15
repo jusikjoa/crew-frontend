@@ -147,6 +147,14 @@ export default function ChatPage() {
               <span className="text-sm text-black">
                 {user?.displayName || user?.username}
               </span>
+              {channel && channel.createdBy === user?.id && (
+                <Link
+                  href={`/chat/${channelId}/settings`}
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  채널 설정
+                </Link>
+              )}
               <button
                 onClick={handleLogout}
                 className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"

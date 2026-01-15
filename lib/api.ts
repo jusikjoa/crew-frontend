@@ -73,6 +73,22 @@ export interface CreateChannelRequest {
   isPublic: boolean;
 }
 
+export interface UpdateChannelRequest {
+  name?: string;
+  description?: string;
+  isPublic?: boolean;
+}
+
+export interface UpdateUserRequest {
+  email?: string;
+  username?: string;
+  displayName?: string;
+}
+
+export interface UpdatePasswordRequest {
+  password: string;
+}
+
 // API 호출 헬퍼 함수
 async function apiCall<T>(
   endpoint: string,
@@ -193,7 +209,7 @@ export const channelsApi = {
     return apiCall<Channel>(`/channels/${id}`);
   },
 
-  join: async (id: number): Promise<Channel> => {
+  join: async (id: number | string): Promise<Channel> => {
     return apiCall<Channel>(`/channels/${id}/join`, {
       method: 'POST',
     });
@@ -202,6 +218,13 @@ export const channelsApi = {
   create: async (data: CreateChannelRequest): Promise<Channel> => {
     return apiCall<Channel>('/channels', {
       method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  update: async (id: number | string, data: UpdateChannelRequest): Promise<Channel> => {
+    return apiCall<Channel>(`/channels/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
@@ -216,6 +239,27 @@ export const messagesApi = {
   create: async (data: CreateMessageRequest): Promise<Message> => {
     return apiCall<Message>('/messages', {
       method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
+// Users API
+export const usersApi = {
+  getById: async (id: number): Promise<User> => {
+    return apiCall<User>(`/users/${id}`);
+  },
+
+  update: async (id: number, data: UpdateUserRequest): Promise<User> => {
+    return apiCall<User>(`/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updatePassword: async (id: number, data: UpdatePasswordRequest): Promise<void> => {
+    return apiCall<void>(`/users/${id}/password`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
