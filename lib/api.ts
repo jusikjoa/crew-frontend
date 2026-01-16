@@ -80,8 +80,8 @@ export interface UpdateChannelRequest {
 }
 
 export interface UpdateUserRequest {
-  email?: string;
-  username?: string;
+  email: string;
+  username: string;
   displayName?: string;
 }
 

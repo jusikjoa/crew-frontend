@@ -57,26 +57,12 @@ export default function ProfilePage() {
     setSuccess('');
 
     try {
-      const updateData: { email?: string; username?: string; displayName?: string } = {};
-      
-      if (email.trim() !== user.email) {
-        updateData.email = email.trim();
-      }
-      if (username.trim() !== user.username) {
-        updateData.username = username.trim();
-      }
-      const currentDisplayName = user.displayName || '';
-      const newDisplayName = displayName.trim();
-      if (newDisplayName !== currentDisplayName) {
-        updateData.displayName = newDisplayName || undefined;
-      }
-
-      // 변경사항이 없으면 요청하지 않음
-      if (Object.keys(updateData).length === 0) {
-        setSuccess('변경된 내용이 없습니다.');
-        setSaving(false);
-        return;
-      }
+      // DTO에 따라 모든 필수 필드를 포함하여 전송
+      const updateData = {
+        email: email.trim(),
+        username: username.trim(),
+        displayName: displayName.trim() || undefined,
+      };
 
       const updatedUser = await usersApi.update(user.id, updateData);
 
