@@ -8,8 +8,12 @@ import Link from 'next/link';
 
 export default function ChannelsPage() {
   const [channels, setChannels] = useState<Channel[]>([]);
+  const [myChannels, setMyChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joining, setJoining] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();
   const router = useRouter();
 
@@ -20,6 +24,7 @@ export default function ChannelsPage() {
     }
 
     fetchChannels();
+    fetchMyChannels();
   }, [isAuthenticated, router]);
 
   const fetchChannels = async () => {
@@ -31,6 +36,50 @@ export default function ChannelsPage() {
       setError(err.message || '채널을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMyChannels = async () => {
+    try {
+      const data = await channelsApi.getMyChannels();
+      setMyChannels(data);
+    } catch (err: any) {
+      // 내 채널 목록 로드 실패는 무시 (선택적)
+    }
+  };
+
+  const handleChannelClick = (channel: Channel, e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // 내가 속한 채널인지 확인
+    const isMember = myChannels.some((myChannel) => myChannel.id === channel.id);
+    
+    if (isMember) {
+      // 이미 가입한 채널이면 바로 채팅 페이지로 이동
+      router.push(`/chat/${channel.id}`);
+    } else {
+      // 가입하지 않은 채널이면 가입 모달 표시
+      setSelectedChannel(channel);
+      setShowJoinModal(true);
+    }
+  };
+
+  const handleJoinChannel = async () => {
+    if (!selectedChannel || joining) return;
+
+    setJoining(true);
+    try {
+      await channelsApi.join(selectedChannel.id);
+      // 가입 성공 후 내 채널 목록 새로고침
+      await fetchMyChannels();
+      setShowJoinModal(false);
+      setSelectedChannel(null);
+      // 채팅 페이지로 이동
+      router.push(`/chat/${selectedChannel.id}`);
+    } catch (err: any) {
+      setError(err.message || '채널 가입에 실패했습니다.');
+    } finally {
+      setJoining(false);
     }
   };
 
@@ -50,9 +99,6 @@ export default function ChannelsPage() {
           <div className="flex h-16 items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Crew</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-black">
-                {user?.displayName || user?.username}
-              </span>
               <Link
                 href="/profile"
                 className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
@@ -107,10 +153,10 @@ export default function ChannelsPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {channels.map((channel) => (
-              <Link
+              <div
                 key={channel.id}
-                href={`/chat/${channel.id}`}
-                className="block rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-md"
+                onClick={(e) => handleChannelClick(channel, e)}
+                className="cursor-pointer rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-md"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -135,11 +181,49 @@ export default function ChannelsPage() {
                     </div>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
       </main>
+
+      {/* 채널 가입 모달 */}
+      {showJoinModal && selectedChannel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="rounded-lg bg-white p-6 shadow-xl max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              채널 가입
+            </h3>
+            <p className="text-black mb-4">
+              <span className="font-medium">{selectedChannel.name}</span> 채널에 가입하시겠습니까?
+            </p>
+            {selectedChannel.description && (
+              <p className="text-sm text-gray-600 mb-4">
+                {selectedChannel.description}
+              </p>
+            )}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowJoinModal(false);
+                  setSelectedChannel(null);
+                }}
+                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                disabled={joining}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleJoinChannel}
+                disabled={joining}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+              >
+                {joining ? '가입 중...' : '가입하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

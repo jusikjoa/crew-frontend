@@ -215,6 +215,12 @@ export const channelsApi = {
     });
   },
 
+  leave: async (id: number | string): Promise<void> => {
+    return apiCall<void>(`/channels/${id}/leave`, {
+      method: 'POST',
+    });
+  },
+
   create: async (data: CreateChannelRequest): Promise<Channel> => {
     return apiCall<Channel>('/channels', {
       method: 'POST',

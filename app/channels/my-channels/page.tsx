@@ -50,9 +50,6 @@ export default function MyChannelsPage() {
           <div className="flex h-16 items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">Crew</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-black">
-                {user?.displayName || user?.username}
-              </span>
               <Link
                 href="/profile"
                 className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"

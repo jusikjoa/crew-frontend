@@ -110,6 +110,19 @@ export default function ChatPage() {
     router.push('/login');
   };
 
+  const handleLeaveChannel = async () => {
+    if (!channelId || !confirm('정말로 이 채널을 나가시겠습니까?')) {
+      return;
+    }
+
+    try {
+      await channelsApi.leave(channelId);
+      router.push('/channels');
+    } catch (err: any) {
+      setError(err.message || '채널 나가기에 실패했습니다.');
+    }
+  };
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('ko-KR', {
@@ -144,9 +157,6 @@ export default function ChatPage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-black">
-                {user?.displayName || user?.username}
-              </span>
               {channel && channel.createdBy === user?.id && (
                 <Link
                   href={`/chat/${channelId}/settings`}
@@ -155,6 +165,12 @@ export default function ChatPage() {
                   채널 설정
                 </Link>
               )}
+              <button
+                onClick={handleLeaveChannel}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+              >
+                채널 나가기
+              </button>
               <button
                 onClick={handleLogout}
                 className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
