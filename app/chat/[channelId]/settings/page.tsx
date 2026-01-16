@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { channelsApi, Channel } from '@/lib/api';
 import Link from 'next/link';
 
@@ -84,10 +85,10 @@ export default function ChannelSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
-          <p className="mt-4 text-slate-600">로딩 중...</p>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 dark:border-indigo-400 border-r-transparent"></div>
+          <p className="mt-4 text-slate-600 dark:text-slate-400">로딩 중...</p>
         </div>
       </div>
     );
@@ -95,22 +96,23 @@ export default function ChannelSettingsPage() {
 
   if (error && !channel) {
     return (
-      <div className="flex h-screen flex-col bg-gradient-to-br from-slate-50 to-slate-100">
-        <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 shadow-sm">
+      <div className="flex h-screen flex-col bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        <header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
               <Link
                 href={`/chat/${channelId}`}
-                className="text-slate-600 hover:text-indigo-600 transition-colors"
+                className="text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               >
                 ← 채팅으로 돌아가기
               </Link>
+              <ThemeToggle />
             </div>
           </div>
         </header>
         <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-xl bg-red-50 border border-red-200 p-4">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
           </div>
         </div>
       </div>
@@ -118,18 +120,18 @@ export default function ChannelSettingsPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-br from-slate-50 to-slate-100">
-      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 shadow-sm sticky top-0 z-40">
+    <div className="flex h-screen flex-col bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm sticky top-0 z-40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link
               href={`/chat/${channelId}`}
-              className="text-slate-600 hover:text-indigo-600 transition-colors"
+              className="text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
               ← 채팅으로 돌아가기
             </Link>
-            <h1 className="text-xl font-bold text-slate-900">채널 설정</h1>
-            <div></div>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">채널 설정</h1>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -137,14 +139,14 @@ export default function ChannelSettingsPage() {
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-2xl">
           {error && (
-            <div className="mb-6 rounded-xl bg-red-50 border border-red-200 p-4">
-              <p className="text-sm text-red-700">{error}</p>
+            <div className="mb-6 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+              <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl bg-white p-8 shadow-sm border border-slate-200">
+          <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl bg-white dark:bg-slate-800 p-8 shadow-sm border border-slate-200 dark:border-slate-700">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 채널 이름
               </label>
               <input
@@ -153,13 +155,13 @@ export default function ChannelSettingsPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-3 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all"
                 disabled={saving}
               />
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 채널 설명
               </label>
               <textarea
@@ -167,7 +169,7 @@ export default function ChannelSettingsPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-3 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all resize-none"
                 disabled={saving}
               />
             </div>
@@ -178,12 +180,12 @@ export default function ChannelSettingsPage() {
                   type="checkbox"
                   checked={isPublic}
                   onChange={(e) => setIsPublic(e.target.checked)}
-                  className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer"
                   disabled={saving}
                 />
-                <span className="ml-3 text-sm font-medium text-slate-700">공개 채널</span>
+                <span className="ml-3 text-sm font-medium text-slate-700 dark:text-slate-300">공개 채널</span>
               </label>
-              <p className="mt-2 ml-8 text-xs text-slate-500">
+              <p className="mt-2 ml-8 text-xs text-slate-500 dark:text-slate-400">
                 공개 채널은 모든 사용자가 볼 수 있고 참여할 수 있습니다.
               </p>
             </div>
@@ -191,7 +193,7 @@ export default function ChannelSettingsPage() {
             <div className="flex justify-end gap-4 pt-4">
               <Link
                 href={`/chat/${channelId}`}
-                className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
               >
                 취소
               </Link>

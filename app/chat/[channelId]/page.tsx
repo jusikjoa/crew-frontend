@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { messagesApi, channelsApi, Message, Channel } from '@/lib/api';
 import Link from 'next/link';
 
@@ -136,23 +137,23 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-br from-slate-50 to-slate-100">
-      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 shadow-sm">
+    <div className="flex h-screen flex-col bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
               <Link
                 href="/channels"
-                className="text-slate-600 hover:text-indigo-600 transition-colors"
+                className="text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               >
                 ← 채널 목록
               </Link>
               <div>
-                <h1 className="text-xl font-bold text-slate-900">
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   {channel?.name || '채널'}
                 </h1>
                 {channel?.description && (
-                  <p className="text-sm text-slate-600">{channel.description}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{channel.description}</p>
                 )}
               </div>
             </div>
@@ -160,20 +161,21 @@ export default function ChatPage() {
               {channel && channel.createdBy === user?.id && (
                 <Link
                   href={`/chat/${channelId}/settings`}
-                  className="rounded-xl px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                  className="rounded-xl px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   설정
                 </Link>
               )}
               <button
                 onClick={handleLeaveChannel}
-                className="rounded-xl px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                className="rounded-xl px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
               >
                 나가기
               </button>
+              <ThemeToggle />
               <button
                 onClick={handleLogout}
-                className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+                className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               >
                 로그아웃
               </button>
@@ -184,8 +186,8 @@ export default function ChatPage() {
 
       {error && (
         <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-          <div className="rounded-xl bg-red-50 border border-red-200 p-4">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
           </div>
         </div>
       )}
@@ -196,13 +198,13 @@ export default function ChatPage() {
             {loading ? (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
-                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
-                  <p className="mt-4 text-slate-600">메시지를 불러오는 중...</p>
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 dark:border-indigo-400 border-r-transparent"></div>
+                  <p className="mt-4 text-slate-600 dark:text-slate-400">메시지를 불러오는 중...</p>
                 </div>
               </div>
             ) : messages.length === 0 ? (
-              <div className="rounded-2xl bg-white p-12 text-center shadow-sm border border-slate-200">
-                <p className="text-slate-600">아직 메시지가 없습니다. 첫 메시지를 보내보세요!</p>
+              <div className="rounded-2xl bg-white dark:bg-slate-800 p-12 text-center shadow-sm border border-slate-200 dark:border-slate-700">
+                <p className="text-slate-600 dark:text-slate-400">아직 메시지가 없습니다. 첫 메시지를 보내보세요!</p>
               </div>
             ) : (
               <div className="space-y-4 py-4">
@@ -217,11 +219,11 @@ export default function ChatPage() {
                         className={`max-w-xs rounded-2xl px-4 py-2.5 ${
                           isOwnMessage
                             ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                            : 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                            : 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm border border-slate-200 dark:border-slate-600'
                         }`}
                       >
                         {!isOwnMessage && (
-                          <p className="mb-1 text-xs font-semibold text-indigo-600">
+                          <p className="mb-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
                             {message.author?.displayName || message.author?.username || '알 수 없음'}
                           </p>
                         )}
@@ -230,7 +232,7 @@ export default function ChatPage() {
                         </p>
                         <p
                           className={`mt-1.5 text-xs ${
-                            isOwnMessage ? 'text-indigo-100' : 'text-slate-500'
+                            isOwnMessage ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'
                           }`}
                         >
                           {formatTime(message.createdAt)}
@@ -245,7 +247,7 @@ export default function ChatPage() {
           </div>
         </div>
 
-        <div className="border-t border-slate-200 bg-white/80 backdrop-blur-sm px-4 py-4 sm:px-6 lg:px-8">
+        <div className="border-t border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-4 sm:px-6 lg:px-8">
           <form onSubmit={handleSendMessage} className="mx-auto max-w-4xl">
             <div className="flex gap-3">
               <input
@@ -253,7 +255,7 @@ export default function ChatPage() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="메시지를 입력하세요..."
-                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                className="flex-1 rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-3 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all"
                 disabled={sending}
               />
               <button
