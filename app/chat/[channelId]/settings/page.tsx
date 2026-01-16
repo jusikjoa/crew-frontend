@@ -14,6 +14,7 @@ export default function ChannelSettingsPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -42,6 +43,7 @@ export default function ChannelSettingsPage() {
       setName(data.name);
       setDescription(data.description || '');
       setIsPublic(data.isPublic);
+      setPassword(''); // 비밀번호는 표시하지 않음 (보안상 이유)
       
       // 채널 생성자가 아닌 경우 접근 거부
       if (data.createdBy !== user?.id) {
@@ -64,11 +66,18 @@ export default function ChannelSettingsPage() {
     setError('');
 
     try {
-      const updatedChannel = await channelsApi.update(channelId, {
+      const updateData: any = {
         name: name.trim(),
         description: description.trim() || undefined,
         isPublic,
-      });
+      };
+      
+      // 비밀번호가 입력된 경우에만 포함
+      if (password.trim()) {
+        updateData.password = password.trim();
+      }
+      
+      const updatedChannel = await channelsApi.update(channelId, updateData);
       
       // 성공 시 채팅 페이지로 이동
       router.push(`/chat/${channelId}`);
@@ -179,7 +188,12 @@ export default function ChannelSettingsPage() {
                 <input
                   type="checkbox"
                   checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
+                  onChange={(e) => {
+                    setIsPublic(e.target.checked);
+                    if (e.target.checked) {
+                      setPassword(''); // 공개 채널로 변경 시 비밀번호 초기화
+                    }
+                  }}
                   className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer"
                   disabled={saving}
                 />
@@ -189,6 +203,26 @@ export default function ChannelSettingsPage() {
                 공개 채널은 모든 사용자가 볼 수 있고 참여할 수 있습니다.
               </p>
             </div>
+
+            {!isPublic && (
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  채널 비밀번호 변경 <span className="text-slate-400 dark:text-slate-500 text-xs">(선택)</span>
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-3 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all"
+                  placeholder="새 비밀번호를 입력하세요 (변경하지 않으려면 비워두세요)"
+                  disabled={saving}
+                />
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  비밀번호를 입력하면 새로운 비밀번호로 변경됩니다. 비워두면 기존 비밀번호가 유지됩니다.
+                </p>
+              </div>
+            )}
 
             <div className="flex justify-end gap-4 pt-4">
               <Link

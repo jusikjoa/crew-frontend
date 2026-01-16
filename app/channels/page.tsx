@@ -16,6 +16,7 @@ export default function ChannelsPage() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState('');
+  const [joinPassword, setJoinPassword] = useState('');
   const { isAuthenticated, logout, user } = useAuth();
   const router = useRouter();
 
@@ -64,6 +65,7 @@ export default function ChannelsPage() {
       setSelectedChannel(channel);
       setShowJoinModal(true);
       setJoinError(''); // 모달 열 때 에러 초기화
+      setJoinPassword(''); // 비밀번호 초기화
     }
   };
 
@@ -73,12 +75,18 @@ export default function ChannelsPage() {
     setJoining(true);
     setJoinError(''); // 에러 초기화
     try {
-      await channelsApi.join(selectedChannel.id);
+      // 비공개 채널인 경우 비밀번호 필요
+      const joinData = !selectedChannel.isPublic && joinPassword.trim()
+        ? { password: joinPassword.trim() }
+        : undefined;
+      
+      await channelsApi.join(selectedChannel.id, joinData);
       // 가입 성공 후 내 채널 목록 새로고침
       await fetchMyChannels();
       setShowJoinModal(false);
       setSelectedChannel(null);
       setJoinError('');
+      setJoinPassword(''); // 비밀번호 초기화
       // 채팅 페이지로 이동
       router.push(`/chat/${selectedChannel.id}`);
     } catch (err: any) {
@@ -213,6 +221,25 @@ export default function ChannelsPage() {
                 {selectedChannel.description}
               </p>
             )}
+            {!selectedChannel.isPublic && (
+              <div className="mb-6">
+                <label htmlFor="joinPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  비밀번호 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="joinPassword"
+                  type="password"
+                  value={joinPassword}
+                  onChange={(e) => setJoinPassword(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-3 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all"
+                  placeholder="채널 비밀번호를 입력하세요"
+                  disabled={joining}
+                />
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  비공개 채널은 비밀번호가 필요합니다.
+                </p>
+              </div>
+            )}
             {joinError && (
               <div className="mb-6 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
                 <p className="text-sm text-red-700 dark:text-red-400">{joinError}</p>
@@ -224,6 +251,7 @@ export default function ChannelsPage() {
                   setShowJoinModal(false);
                   setSelectedChannel(null);
                   setJoinError('');
+                  setJoinPassword('');
                 }}
                 className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
                 disabled={joining}
@@ -232,7 +260,7 @@ export default function ChannelsPage() {
               </button>
               <button
                 onClick={handleJoinChannel}
-                disabled={joining}
+                disabled={joining || (!selectedChannel.isPublic && !joinPassword.trim())}
                 className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-all transform hover:scale-105 active:scale-95"
               >
                 {joining ? '가입 중...' : '가입하기'}

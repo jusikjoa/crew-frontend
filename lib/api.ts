@@ -71,12 +71,18 @@ export interface CreateChannelRequest {
   name: string;
   description?: string;
   isPublic: boolean;
+  password?: string;
 }
 
 export interface UpdateChannelRequest {
   name?: string;
   description?: string;
   isPublic?: boolean;
+  password?: string;
+}
+
+export interface JoinChannelRequest {
+  password?: string;
 }
 
 export interface UpdateUserRequest {
@@ -209,9 +215,10 @@ export const channelsApi = {
     return apiCall<Channel>(`/channels/${id}`);
   },
 
-  join: async (id: number | string): Promise<Channel> => {
+  join: async (id: number | string, data?: JoinChannelRequest): Promise<Channel> => {
     return apiCall<Channel>(`/channels/${id}/join`, {
       method: 'POST',
+      body: JSON.stringify(data || {}),
     });
   },
 

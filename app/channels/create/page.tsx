@@ -11,6 +11,7 @@ export default function CreateChannelPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();
@@ -31,6 +32,7 @@ export default function CreateChannelPage() {
         name: name.trim(),
         description: description.trim() || undefined,
         isPublic,
+        password: !isPublic && password.trim() ? password.trim() : undefined,
       };
 
       const channel = await channelsApi.create(data);
@@ -122,7 +124,12 @@ export default function CreateChannelPage() {
                 <input
                   type="checkbox"
                   checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
+                  onChange={(e) => {
+                    setIsPublic(e.target.checked);
+                    if (e.target.checked) {
+                      setPassword(''); // 공개 채널로 변경 시 비밀번호 초기화
+                    }
+                  }}
                   className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 cursor-pointer"
                 />
                 <span className="ml-3 text-sm font-medium text-slate-700 dark:text-slate-300">공개 채널</span>
@@ -131,6 +138,25 @@ export default function CreateChannelPage() {
                 공개 채널은 모든 사용자가 볼 수 있고 참여할 수 있습니다.
               </p>
             </div>
+
+            {!isPublic && (
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  채널 비밀번호 <span className="text-slate-400 dark:text-slate-500 text-xs">(선택)</span>
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-3 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all"
+                  placeholder="비공개 채널 비밀번호를 설정하세요"
+                />
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  비밀번호를 설정하면 비공개 채널에 가입할 때 비밀번호가 필요합니다.
+                </p>
+              </div>
+            )}
 
             <div className="flex gap-4 pt-4">
               <Link
