@@ -49,26 +49,29 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-md">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
-            Crew 회원가입
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-4 py-12">
+      <div className="w-full max-w-md space-y-8 rounded-2xl bg-white/80 backdrop-blur-sm p-10 shadow-xl border border-slate-200/50">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            Crew
+          </h1>
+          <h2 className="text-2xl font-semibold text-slate-900">
+            회원가입
           </h2>
-          <p className="mt-2 text-center text-sm text-black">
+          <p className="text-sm text-slate-600">
             새 계정을 만들어 시작하세요
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="rounded-xl bg-red-50 border border-red-200 p-4">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                이메일 *
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                이메일 <span className="text-red-500">*</span>
               </label>
               <input
                 id="email"
@@ -76,13 +79,13 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 placeholder="이메일을 입력하세요"
               />
             </div>
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                사용자명 *
+              <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-2">
+                사용자명 <span className="text-red-500">*</span>
               </label>
               <input
                 id="username"
@@ -90,26 +93,26 @@ export default function SignupPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 placeholder="사용자명을 입력하세요"
               />
             </div>
             <div>
-              <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
-                표시명 (선택)
+              <label htmlFor="displayName" className="block text-sm font-medium text-slate-700 mb-2">
+                표시명 <span className="text-slate-400 text-xs">(선택)</span>
               </label>
               <input
                 id="displayName"
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 placeholder="표시명을 입력하세요 (선택사항)"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                비밀번호 *
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+                비밀번호 <span className="text-red-500">*</span>
               </label>
               <input
                 id="password"
@@ -117,13 +120,13 @@ export default function SignupPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 placeholder="비밀번호를 입력하세요 (최소 6자)"
               />
             </div>
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                비밀번호 확인 *
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
+                비밀번호 확인 <span className="text-red-500">*</span>
               </label>
               <input
                 id="confirmPassword"
@@ -131,7 +134,7 @@ export default function SignupPage() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 placeholder="비밀번호를 다시 입력하세요"
               />
             </div>
@@ -140,15 +143,15 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+              className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-white font-medium shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
             >
               {loading ? '가입 중...' : '회원가입'}
             </button>
           </div>
           <div className="text-center">
-            <p className="text-sm text-black">
+            <p className="text-sm text-slate-600">
               이미 계정이 있으신가요?{' '}
-              <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
                 로그인
               </Link>
             </p>

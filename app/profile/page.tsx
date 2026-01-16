@@ -123,17 +123,17 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 shadow-sm sticky top-0 z-40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link
               href="/channels"
-              className="text-blue-600 hover:text-blue-700"
+              className="text-slate-600 hover:text-indigo-600 transition-colors"
             >
               ← 채널 목록으로 돌아가기
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">프로필 설정</h1>
+            <h1 className="text-xl font-bold text-slate-900">프로필 설정</h1>
             <div></div>
           </div>
         </div>
@@ -141,23 +141,23 @@ export default function ProfilePage() {
 
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
         {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">{error}</p>
+          <div className="mb-6 rounded-xl bg-red-50 border border-red-200 p-4">
+            <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="mb-4 rounded-md bg-green-50 p-4">
-            <p className="text-sm text-green-800">{success}</p>
+          <div className="mb-6 rounded-xl bg-emerald-50 border border-emerald-200 p-4">
+            <p className="text-sm text-emerald-700">{success}</p>
           </div>
         )}
 
         {/* 프로필 정보 수정 */}
-        <div className="mb-6 rounded-lg bg-white p-6 shadow">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">프로필 정보</h2>
-          <form onSubmit={handleUpdateProfile} className="space-y-4">
+        <div className="mb-6 rounded-2xl bg-white p-8 shadow-sm border border-slate-200">
+          <h2 className="mb-6 text-xl font-bold text-slate-900">프로필 정보</h2>
+          <form onSubmit={handleUpdateProfile} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
                 이메일
               </label>
               <input
@@ -166,13 +166,13 @@ export default function ProfilePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 disabled={saving}
               />
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-2">
                 사용자명
               </label>
               <input
@@ -181,30 +181,30 @@ export default function ProfilePage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 disabled={saving}
               />
             </div>
 
             <div>
-              <label htmlFor="displayName" className="block text-sm font-medium text-gray-900">
-                표시명 (선택사항)
+              <label htmlFor="displayName" className="block text-sm font-medium text-slate-700 mb-2">
+                표시명 <span className="text-slate-400 text-xs">(선택사항)</span>
               </label>
               <input
                 type="text"
                 id="displayName"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 disabled={saving}
               />
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-2">
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-all transform hover:scale-105 active:scale-95"
               >
                 {saving ? '저장 중...' : '저장'}
               </button>
@@ -213,11 +213,11 @@ export default function ProfilePage() {
         </div>
 
         {/* 비밀번호 변경 */}
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">비밀번호 변경</h2>
-          <form onSubmit={handleChangePassword} className="space-y-4">
+        <div className="rounded-2xl bg-white p-8 shadow-sm border border-slate-200">
+          <h2 className="mb-6 text-xl font-bold text-slate-900">비밀번호 변경</h2>
+          <form onSubmit={handleChangePassword} className="space-y-5">
             <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 mb-2">
                 새 비밀번호
               </label>
               <input
@@ -227,13 +227,13 @@ export default function ProfilePage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={6}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 disabled={changingPassword}
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
                 새 비밀번호 확인
               </label>
               <input
@@ -243,16 +243,16 @@ export default function ProfilePage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 disabled={changingPassword}
               />
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-2">
               <button
                 type="submit"
                 disabled={changingPassword || !newPassword || !confirmPassword}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-all transform hover:scale-105 active:scale-95"
               >
                 {changingPassword ? '변경 중...' : '비밀번호 변경'}
               </button>

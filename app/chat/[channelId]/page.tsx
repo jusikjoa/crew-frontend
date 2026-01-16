@@ -136,44 +136,44 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="flex h-screen flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
               <Link
                 href="/channels"
-                className="text-blue-600 hover:text-blue-700"
+                className="text-slate-600 hover:text-indigo-600 transition-colors"
               >
                 ← 채널 목록
               </Link>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-xl font-bold text-slate-900">
                   {channel?.name || '채널'}
                 </h1>
                 {channel?.description && (
-                  <p className="text-sm text-black">{channel.description}</p>
+                  <p className="text-sm text-slate-600">{channel.description}</p>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {channel && channel.createdBy === user?.id && (
                 <Link
                   href={`/chat/${channelId}/settings`}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  className="rounded-xl px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
                 >
-                  채널 설정
+                  설정
                 </Link>
               )}
               <button
                 onClick={handleLeaveChannel}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                className="rounded-xl px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
               >
-                채널 나가기
+                나가기
               </button>
               <button
                 onClick={handleLogout}
-                className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+                className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
               >
                 로그아웃
               </button>
@@ -184,8 +184,8 @@ export default function ChatPage() {
 
       {error && (
         <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-          <div className="rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">{error}</p>
+          <div className="rounded-xl bg-red-50 border border-red-200 p-4">
+            <p className="text-sm text-red-700">{error}</p>
           </div>
         </div>
       )}
@@ -194,15 +194,18 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <p className="text-black">메시지를 불러오는 중...</p>
+              <div className="flex items-center justify-center py-20">
+                <div className="text-center">
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+                  <p className="mt-4 text-slate-600">메시지를 불러오는 중...</p>
+                </div>
               </div>
             ) : messages.length === 0 ? (
-              <div className="rounded-lg bg-white p-8 text-center shadow">
-                <p className="text-black">아직 메시지가 없습니다. 첫 메시지를 보내보세요!</p>
+              <div className="rounded-2xl bg-white p-12 text-center shadow-sm border border-slate-200">
+                <p className="text-slate-600">아직 메시지가 없습니다. 첫 메시지를 보내보세요!</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 py-4">
                 {messages.map((message) => {
                   const isOwnMessage = message.authorId === user?.id;
                   return (
@@ -211,23 +214,23 @@ export default function ChatPage() {
                       className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-xs rounded-lg px-4 py-2 ${
+                        className={`max-w-xs rounded-2xl px-4 py-2.5 ${
                           isOwnMessage
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white text-gray-900 shadow'
+                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                            : 'bg-white text-slate-900 shadow-sm border border-slate-200'
                         }`}
                       >
                         {!isOwnMessage && (
-                          <p className="mb-1 text-xs font-semibold">
+                          <p className="mb-1 text-xs font-semibold text-indigo-600">
                             {message.author?.displayName || message.author?.username || '알 수 없음'}
                           </p>
                         )}
-                        <p className="text-sm whitespace-pre-wrap break-words">
+                        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                           {message.content}
                         </p>
                         <p
-                          className={`mt-1 text-xs ${
-                            isOwnMessage ? 'text-blue-100' : 'text-black'
+                          className={`mt-1.5 text-xs ${
+                            isOwnMessage ? 'text-indigo-100' : 'text-slate-500'
                           }`}
                         >
                           {formatTime(message.createdAt)}
@@ -242,21 +245,21 @@ export default function ChatPage() {
           </div>
         </div>
 
-        <div className="border-t bg-white px-4 py-4 sm:px-6 lg:px-8">
+        <div className="border-t border-slate-200 bg-white/80 backdrop-blur-sm px-4 py-4 sm:px-6 lg:px-8">
           <form onSubmit={handleSendMessage} className="mx-auto max-w-4xl">
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="메시지를 입력하세요..."
-                className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-black focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 disabled={sending}
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || sending}
-                className="rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-white font-medium shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 active:scale-95"
               >
                 {sending ? '전송 중...' : '전송'}
               </button>
