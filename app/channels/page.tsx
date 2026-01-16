@@ -14,6 +14,7 @@ export default function ChannelsPage() {
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState('');
   const { isAuthenticated, logout, user } = useAuth();
   const router = useRouter();
 
@@ -61,6 +62,7 @@ export default function ChannelsPage() {
       // 가입하지 않은 채널이면 가입 모달 표시
       setSelectedChannel(channel);
       setShowJoinModal(true);
+      setJoinError(''); // 모달 열 때 에러 초기화
     }
   };
 
@@ -68,16 +70,18 @@ export default function ChannelsPage() {
     if (!selectedChannel || joining) return;
 
     setJoining(true);
+    setJoinError(''); // 에러 초기화
     try {
       await channelsApi.join(selectedChannel.id);
       // 가입 성공 후 내 채널 목록 새로고침
       await fetchMyChannels();
       setShowJoinModal(false);
       setSelectedChannel(null);
+      setJoinError('');
       // 채팅 페이지로 이동
       router.push(`/chat/${selectedChannel.id}`);
     } catch (err: any) {
-      setError(err.message || '채널 가입에 실패했습니다.');
+      setJoinError(err.message || '채널 가입에 실패했습니다.');
     } finally {
       setJoining(false);
     }
@@ -202,11 +206,17 @@ export default function ChannelsPage() {
                 {selectedChannel.description}
               </p>
             )}
+            {joinError && (
+              <div className="mb-4 rounded-md bg-red-50 p-3">
+                <p className="text-sm text-red-800">{joinError}</p>
+              </div>
+            )}
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => {
                   setShowJoinModal(false);
                   setSelectedChannel(null);
+                  setJoinError('');
                 }}
                 className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 disabled={joining}
