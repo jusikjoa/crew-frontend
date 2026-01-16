@@ -215,6 +215,10 @@ export const channelsApi = {
     return apiCall<Channel>(`/channels/${id}`);
   },
 
+  getMembers: async (id: number | string): Promise<User[]> => {
+    return apiCall<User[]>(`/channels/${id}/members`);
+  },
+
   join: async (id: number | string, data?: JoinChannelRequest): Promise<Channel> => {
     return apiCall<Channel>(`/channels/${id}/join`, {
       method: 'POST',

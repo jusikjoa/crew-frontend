@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { messagesApi, channelsApi, Message, Channel } from '@/lib/api';
+import { messagesApi, channelsApi, Message, Channel, User } from '@/lib/api';
 import Link from 'next/link';
 
 export default function ChatPage() {
@@ -12,10 +12,12 @@ export default function ChatPage() {
   const channelId = params.channelId as string; // 문자열로 유지
   const [messages, setMessages] = useState<Message[]>([]);
   const [channel, setChannel] = useState<Channel | null>(null);
+  const [members, setMembers] = useState<User[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [showSidebar, setShowSidebar] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -35,6 +37,7 @@ export default function ChatPage() {
 
     fetchChannel();
     fetchMessages();
+    fetchMembers();
     
     // 주기적으로 메시지 새로고침 (5초마다)
     const interval = setInterval(() => {
@@ -62,6 +65,19 @@ export default function ChatPage() {
       setChannel(data);
     } catch (err: any) {
       setError(err.message || '채널 정보를 불러오는데 실패했습니다.');
+    }
+  };
+
+  const fetchMembers = async () => {
+    try {
+      if (!channelId || channelId.trim() === '') {
+        return;
+      }
+      const data = await channelsApi.getMembers(channelId);
+      setMembers(data);
+    } catch (err: any) {
+      console.error('[Members] Error:', err);
+      // 멤버 목록 로드 실패는 치명적이지 않으므로 에러 표시하지 않음
     }
   };
 
@@ -158,6 +174,27 @@ export default function ChatPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {/* 사이드바 토글 버튼 */}
+              <button
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="rounded-xl p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                aria-label="참여자 목록"
+                title={showSidebar ? '참여자 목록 닫기' : '참여자 목록 열기'}
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </button>
               {channel && channel.createdBy === user?.id && (
                 <Link
                   href={`/chat/${channelId}/settings`}
@@ -193,8 +230,10 @@ export default function ChatPage() {
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl">
+        <div className="flex flex-1 overflow-hidden">
+          {/* 메시지 영역 */}
+          <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-4xl">
             {loading ? (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
@@ -244,7 +283,92 @@ export default function ChatPage() {
                 <div ref={messagesEndRef} />
               </div>
             )}
+            </div>
           </div>
+
+          {/* 사이드바 */}
+          {showSidebar && (
+            <div className="fixed right-0 top-16 h-[calc(100vh-4rem)] w-80 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 shadow-xl transition-transform duration-300 ease-in-out z-30 lg:relative lg:shadow-none">
+            <div className="flex h-full flex-col">
+              {/* 사이드바 헤더 */}
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-4 py-4">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  참여자 ({members.length})
+                </h2>
+                <button
+                  onClick={() => setShowSidebar(false)}
+                  className="rounded-lg p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  aria-label="사이드바 닫기"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* 참여자 목록 */}
+              <div className="flex-1 overflow-y-auto px-4 py-4">
+                {members.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      참여자가 없습니다.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {members.map((member) => (
+                      <div
+                        key={member.id}
+                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+                          member.id === user?.id
+                            ? 'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                        }`}
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-sm">
+                          {(member.displayName || member.username || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                            {member.displayName || member.username}
+                            {member.id === user?.id && (
+                              <span className="ml-2 text-xs text-indigo-600 dark:text-indigo-400">
+                                (나)
+                              </span>
+                            )}
+                          </p>
+                          {member.displayName && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                              @{member.username}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            </div>
+          )}
+
+          {/* 모바일에서 사이드바 오버레이 */}
+          {showSidebar && (
+            <div
+              className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+              onClick={() => setShowSidebar(false)}
+            />
+          )}
         </div>
 
         <div className="border-t border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-4 sm:px-6 lg:px-8">
