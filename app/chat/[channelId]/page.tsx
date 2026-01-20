@@ -16,6 +16,7 @@ export default function ChatPage() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
   const [showSidebar, setShowSidebar] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();
@@ -140,6 +141,74 @@ export default function ChatPage() {
     }
   };
 
+  const handleDeleteChannel = async () => {
+    if (!channelId || !channel || deleting) {
+      return;
+    }
+
+    // 채널 생성자 확인
+    if (channel.createdBy !== user?.id) {
+      setError('채널을 삭제할 권한이 없습니다. 채널 생성자만 삭제할 수 있습니다.');
+      return;
+    }
+
+    const confirmMessage = `정말로 "${channel.name}" 채널을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 채널의 모든 메시지가 삭제됩니다.`;
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    setDeleting(true);
+    setError('');
+
+    try {
+      console.log('[Delete Channel] Attempting to delete:', {
+        channelId,
+        channelName: channel.name,
+        createdBy: channel.createdBy,
+        currentUserId: user?.id,
+      });
+      
+      await channelsApi.delete(channelId);
+      router.push('/channels');
+    } catch (err: any) {
+      // 에러 정보를 개별적으로 출력
+      console.error('[Delete Channel Error] Full Error Object:', err);
+      console.error('[Delete Channel Error] Message:', err.message);
+      console.error('[Delete Channel Error] Status:', err.status);
+      console.error('[Delete Channel Error] Error Details:', err.errorDetails);
+      console.error('[Delete Channel Error] Stack:', err.stack);
+      
+      const status = err.status;
+      let errorMessage = err.message || '채널 삭제에 실패했습니다.';
+      
+      // HTTP 상태 코드에 따라 적절한 메시지 표시
+      if (status === 403) {
+        errorMessage = '채널을 삭제할 권한이 없습니다. 채널 생성자만 삭제할 수 있습니다.';
+      } else if (status === 401) {
+        errorMessage = '인증이 필요합니다. 다시 로그인해주세요.';
+      } else if (status === 404) {
+        errorMessage = '채널을 찾을 수 없습니다.';
+      } else if (status === 500) {
+        // 500 에러인 경우 더 자세한 정보 표시 (개발 환경에서)
+        if (process.env.NODE_ENV === 'development') {
+          errorMessage = `서버 오류가 발생했습니다. (상태 코드: 500)\n\n상세 정보: ${err.message}\n\n콘솔을 확인하세요.`;
+        } else {
+          errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        }
+      } else if (errorMessage.includes('Internal server error')) {
+        if (process.env.NODE_ENV === 'development') {
+          errorMessage = `서버 오류가 발생했습니다.\n\n상세 정보: ${err.message}\n\n콘솔을 확인하세요.`;
+        } else {
+          errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        }
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('ko-KR', {
@@ -196,12 +265,22 @@ export default function ChatPage() {
                 </svg>
               </button>
               {channel && channel.createdBy === user?.id && (
-                <Link
-                  href={`/chat/${channelId}/settings`}
-                  className="rounded-xl px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                >
-                  설정
-                </Link>
+                <>
+                  <Link
+                    href={`/chat/${channelId}/settings`}
+                    className="rounded-xl px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    설정
+                  </Link>
+                  <button
+                    onClick={handleDeleteChannel}
+                    disabled={deleting}
+                    className="rounded-xl px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="채널 삭제"
+                  >
+                    {deleting ? '삭제 중...' : '삭제'}
+                  </button>
+                </>
               )}
               <button
                 onClick={handleLeaveChannel}

@@ -150,31 +150,65 @@ async function apiCall<T>(
 
   if (!response.ok) {
     let errorMessage = `HTTP error! status: ${response.status}`;
+    let errorDetails: any = null;
+    
     try {
-      const errorData = await response.json();
-      // 다양한 에러 응답 형식 처리
-      if (errorData.message) {
-        errorMessage = errorData.message;
-      } else if (errorData.error) {
-        errorMessage = errorData.error;
-      } else if (typeof errorData === 'string') {
-        errorMessage = errorData;
-      } else if (Array.isArray(errorData.message)) {
-        // NestJS validation 에러 형식
-        errorMessage = errorData.message.join(', ');
-      }
-    } catch (jsonError) {
-      // JSON 파싱 실패 시 텍스트로 읽기 시도
-      try {
-        const text = await response.text();
-        if (text) {
+      // 응답을 먼저 텍스트로 읽기
+      const text = await response.text();
+      
+      if (text) {
+        // JSON 파싱 시도
+        try {
+          const errorData = JSON.parse(text);
+          errorDetails = errorData;
+          
+          // 다양한 에러 응답 형식 처리
+          if (errorData.message) {
+            if (Array.isArray(errorData.message)) {
+              // NestJS validation 에러 형식
+              errorMessage = errorData.message.join(', ');
+            } else {
+              errorMessage = errorData.message;
+            }
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (typeof errorData === 'string') {
+            errorMessage = errorData;
+          }
+        } catch (jsonError) {
+          // JSON이 아닌 경우 텍스트 그대로 사용
           errorMessage = text;
         }
-      } catch (textError) {
-        // 텍스트 읽기도 실패하면 기본 메시지 사용
       }
+    } catch (textError) {
+      // 텍스트 읽기 실패 시 기본 메시지 사용
+      console.error('[API] Failed to read error response:', textError);
     }
-    throw new Error(errorMessage);
+    
+    // 개발 환경에서 더 자세한 에러 정보 로깅
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.error('[API Error Details]', {
+        url,
+        method: options.method || 'GET',
+        status: response.status,
+        statusText: response.statusText,
+        errorMessage,
+        errorDetails,
+      });
+      // 각 필드를 개별적으로 출력하여 Object가 펼쳐지지 않는 경우를 대비
+      console.error('URL:', url);
+      console.error('Method:', options.method || 'GET');
+      console.error('Status:', response.status);
+      console.error('Status Text:', response.statusText);
+      console.error('Error Message:', errorMessage);
+      console.error('Error Details:', errorDetails);
+    }
+    
+    // 에러 객체에 상태 코드 추가
+    const error = new Error(errorMessage) as Error & { status?: number; errorDetails?: any };
+    error.status = response.status;
+    error.errorDetails = errorDetails;
+    throw error;
   }
 
   if (response.status === 204) {
@@ -243,6 +277,12 @@ export const channelsApi = {
     return apiCall<Channel>(`/channels/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
+    });
+  },
+
+  delete: async (id: number | string): Promise<void> => {
+    return apiCall<void>(`/channels/${id}`, {
+      method: 'DELETE',
     });
   },
 };
