@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { messagesApi, channelsApi, Message, Channel, User } from '@/lib/api';
+import { messagesApi, channelsApi, Message, Channel, User, WS_MESSAGES_URL } from '@/lib/api';
+import { io, Socket } from 'socket.io-client';
 import Link from 'next/link';
 
 export default function ChatPage() {
@@ -26,6 +27,8 @@ export default function ChatPage() {
   const { isAuthenticated, logout, user } = useAuth();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -43,14 +46,101 @@ export default function ChatPage() {
     fetchChannel();
     fetchMessages();
     fetchMembers();
-    
-    // 주기적으로 메시지 새로고침 (5초마다)
-    const interval = setInterval(() => {
-      fetchMessages();
-    }, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      // WebSocket 연결 해제는 별도 useEffect에서 처리
+    };
   }, [isAuthenticated, router, channelId, params.channelId]);
+
+  // WebSocket 연결 및 이벤트 처리
+  useEffect(() => {
+    if (!isAuthenticated || !channelId || !channelId.trim()) {
+      return;
+    }
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      console.warn('[WebSocket] 토큰이 없어 연결을 시도하지 않습니다.');
+      return;
+    }
+
+    // WebSocket 연결
+    const socket = io(WS_MESSAGES_URL, {
+      query: { token },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+    });
+
+    socketRef.current = socket;
+
+    // 연결 성공
+    socket.on('connect', () => {
+      console.log('[WebSocket] ✅ 연결 성공');
+      setIsConnected(true);
+      
+      // 채널 참여
+      socket.emit('joinChannel', { channelId });
+    });
+
+    // 연결 끊김
+    socket.on('disconnect', () => {
+      console.log('[WebSocket] ❌ 연결 끊김');
+      setIsConnected(false);
+    });
+
+    // 연결 에러
+    socket.on('connect_error', (error) => {
+      console.error('[WebSocket] 연결 에러:', error);
+      setIsConnected(false);
+    });
+
+    // 채널 참여 성공
+    socket.on('joinedChannel', ({ channelId: joinedChannelId }) => {
+      console.log(`[WebSocket] ✅ 채널 ${joinedChannelId} 참여 성공`);
+    });
+
+    // 새 메시지 수신
+    socket.on('newMessage', (message: Message) => {
+      console.log('[WebSocket] 새 메시지 수신:', message);
+      
+      // 현재 채널의 메시지인지 확인
+      if (message.channelId.toString() === channelId.toString()) {
+        setMessages((prev) => {
+          // 중복 체크
+          if (prev.some((m) => m.id === message.id)) {
+            return prev;
+          }
+          return [...prev, message];
+        });
+      }
+    });
+
+    // 메시지 삭제 알림
+    socket.on('deletedMessage', ({ messageId, channelId: deletedChannelId }) => {
+      console.log('[WebSocket] 메시지 삭제:', messageId);
+      
+      // 현재 채널의 메시지인지 확인
+      if (deletedChannelId.toString() === channelId.toString()) {
+        setMessages((prev) => prev.filter((m) => m.id.toString() !== messageId.toString()));
+      }
+    });
+
+    // 에러 처리
+    socket.on('error', ({ message }) => {
+      console.error('[WebSocket] 에러:', message);
+      setError(message || 'WebSocket 에러가 발생했습니다.');
+    });
+
+    // 컴포넌트 언마운트 시 연결 해제
+    return () => {
+      if (socket) {
+        socket.emit('leaveChannel', { channelId });
+        socket.disconnect();
+      }
+    };
+  }, [isAuthenticated, channelId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -118,8 +208,11 @@ export default function ChatPage() {
         channelId: channelId, // 이미 문자열
       });
       setNewMessage('');
-      // 메시지 전송 후 즉시 새로고침
-      await fetchMessages();
+      // WebSocket을 통해 새 메시지가 자동으로 수신되므로 fetchMessages는 호출하지 않음
+      // 하지만 안전을 위해 연결이 끊어진 경우에만 호출
+      if (!isConnected) {
+        await fetchMessages();
+      }
     } catch (err: any) {
       setError(err.message || '메시지 전송에 실패했습니다.');
     } finally {
@@ -370,6 +463,18 @@ export default function ChatPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {/* WebSocket 연결 상태 표시 */}
+              <div className="flex items-center gap-2 px-2">
+                <div
+                  className={`h-2 w-2 rounded-full ${
+                    isConnected ? 'bg-emerald-500' : 'bg-red-500'
+                  }`}
+                  title={isConnected ? '실시간 연결됨' : '연결 끊김'}
+                />
+                <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">
+                  {isConnected ? '실시간' : '오프라인'}
+                </span>
+              </div>
               {/* 사이드바 토글 버튼 */}
               <button
                 onClick={() => setShowSidebar(!showSidebar)}

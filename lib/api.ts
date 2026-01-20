@@ -5,9 +5,19 @@ const API_BASE_URL =
     ? '/api' // Next.js rewrites를 통해 프록시
     : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
+// WebSocket URL 설정
+// 개발 환경에서는 직접 백엔드 URL 사용 (Next.js rewrites는 WebSocket을 지원하지 않음)
+const WS_BASE_URL = 
+  typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
+    ? process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3000'
+    : process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+export const WS_MESSAGES_URL = `${WS_BASE_URL}/messages`;
+
 // 개발 환경에서 API URL 확인용
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   console.log('[API] Base URL:', API_BASE_URL);
+  console.log('[WebSocket] Messages URL:', WS_MESSAGES_URL);
 }
 
 export interface User {
