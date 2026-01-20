@@ -2,7 +2,25 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### 환경 변수 설정
+
+프로젝트 루트에 `.env.local` 파일을 생성하고 다음 내용을 추가하세요:
+
+```env
+# Backend API URL
+NEXT_PUBLIC_API_URL=http://localhost:3000
+
+# Frontend Port (기본값: 3001)
+PORT=3001
+```
+
+**참고**: `env.example` 파일을 참고하여 `.env.local` 파일을 만들 수 있습니다.
+
+`.env.local` 파일이 없으면 기본값이 사용됩니다:
+- 백엔드 URL: `http://localhost:3000`
+- 프론트엔드 포트: `3001`
+
+### 개발 서버 실행
 
 ```bash
 npm run dev
@@ -14,7 +32,7 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 `http://localhost:3001` (또는 설정한 PORT)로 접속하세요.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
