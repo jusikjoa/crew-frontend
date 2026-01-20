@@ -20,6 +20,9 @@ export default function ChatPage() {
   const [error, setError] = useState('');
   const [showSidebar, setShowSidebar] = useState(false);
   const [creatingDM, setCreatingDM] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<User | null>(null);
+  const [showMemberActionMenu, setShowMemberActionMenu] = useState(false);
+  const [transferring, setTransferring] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -220,10 +223,22 @@ export default function ChatPage() {
 
   const handleMemberClick = async (member: User) => {
     // 자신을 클릭한 경우 무시
-    if (member.id === user?.id || creatingDM) {
+    if (member.id === user?.id || creatingDM || transferring) {
       return;
     }
 
+    // 채널 생성자인 경우 선택 메뉴 표시
+    if (channel && channel.createdBy === user?.id) {
+      setSelectedMember(member);
+      setShowMemberActionMenu(true);
+      return;
+    }
+
+    // 일반 사용자는 바로 DM 시작
+    await startDM(member);
+  };
+
+  const startDM = async (member: User) => {
     setCreatingDM(true);
     setError('');
 
@@ -284,6 +299,49 @@ export default function ChatPage() {
     } finally {
       setCreatingDM(false);
     }
+  };
+
+  const handleTransferChannel = async () => {
+    if (!selectedMember || !channel || !channelId || transferring) {
+      return;
+    }
+
+    const confirmMessage = `정말로 "${selectedMember.displayName || selectedMember.username}"에게 채널을 양도하시겠습니까?\n\n양도 후 해당 사용자가 채널의 새로운 주인이 됩니다.`;
+    if (!confirm(confirmMessage)) {
+      setShowMemberActionMenu(false);
+      setSelectedMember(null);
+      return;
+    }
+
+    setTransferring(true);
+    setError('');
+
+    try {
+      await channelsApi.update(channelId, {
+        createdBy: selectedMember.id,
+      });
+      
+      // 채널 정보 새로고침
+      await fetchChannel();
+      setShowMemberActionMenu(false);
+      setSelectedMember(null);
+    } catch (err: any) {
+      console.error('[Transfer Channel Error]', err);
+      setError(err.message || '채널 양도에 실패했습니다.');
+    } finally {
+      setTransferring(false);
+    }
+  };
+
+  const handleStartDM = async () => {
+    if (!selectedMember) {
+      return;
+    }
+    
+    setShowMemberActionMenu(false);
+    const member = selectedMember;
+    setSelectedMember(null);
+    await startDM(member);
   };
 
   if (!isAuthenticated) {
@@ -482,8 +540,14 @@ export default function ChatPage() {
                           member.id === user?.id
                             ? 'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 cursor-default'
                             : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer'
-                        } ${creatingDM ? 'opacity-50 pointer-events-none' : ''}`}
-                        title={member.id === user?.id ? '' : 'DM 시작하기'}
+                        } ${creatingDM || transferring ? 'opacity-50 pointer-events-none' : ''}`}
+                        title={
+                          member.id === user?.id
+                            ? ''
+                            : channel && channel.createdBy === user?.id
+                            ? 'DM 시작하기 또는 채널 양도하기'
+                            : 'DM 시작하기'
+                        }
                       >
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-sm">
                           {(member.displayName || member.username || 'U').charAt(0).toUpperCase()}
@@ -525,6 +589,43 @@ export default function ChatPage() {
               className="fixed inset-0 bg-black/50 z-20 lg:hidden"
               onClick={() => setShowSidebar(false)}
             />
+          )}
+
+          {/* 멤버 액션 메뉴 모달 */}
+          {showMemberActionMenu && selectedMember && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
+                  {selectedMember.displayName || selectedMember.username}에게 할 작업 선택
+                </h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={handleStartDM}
+                    disabled={creatingDM || transferring}
+                    className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 active:scale-95"
+                  >
+                    {creatingDM ? 'DM 생성 중...' : 'DM 시작하기'}
+                  </button>
+                  <button
+                    onClick={handleTransferChannel}
+                    disabled={creatingDM || transferring}
+                    className="w-full rounded-xl border-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-slate-700 px-4 py-3 text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {transferring ? '양도 중...' : '채널 양도하기'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMemberActionMenu(false);
+                      setSelectedMember(null);
+                    }}
+                    disabled={creatingDM || transferring}
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 

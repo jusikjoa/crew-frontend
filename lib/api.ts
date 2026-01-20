@@ -81,6 +81,7 @@ export interface UpdateChannelRequest {
   name?: string;
   description?: string;
   isPublic?: boolean;
+  createdBy?: number | string;
   password?: string;
 }
 
