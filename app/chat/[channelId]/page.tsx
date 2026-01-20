@@ -19,6 +19,7 @@ export default function ChatPage() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
   const [showSidebar, setShowSidebar] = useState(false);
+  const [creatingDM, setCreatingDM] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -217,6 +218,74 @@ export default function ChatPage() {
     });
   };
 
+  const handleMemberClick = async (member: User) => {
+    // 자신을 클릭한 경우 무시
+    if (member.id === user?.id || creatingDM) {
+      return;
+    }
+
+    setCreatingDM(true);
+    setError('');
+
+    try {
+      // 내 채널 목록 가져오기
+      const myChannels = await channelsApi.getMyChannels();
+      
+      // DM 채널 찾기
+      let dmChannel: Channel | null = null;
+      
+      for (const channel of myChannels) {
+        if (channel.isDM) {
+          // DM 채널의 멤버 확인
+          try {
+            const channelMembers = await channelsApi.getMembers(channel.id);
+            // 현재 사용자와 클릭한 멤버만 있는지 확인
+            const memberIds = channelMembers.map(m => m.id).sort();
+            const expectedIds = [user?.id, member.id].filter(Boolean).sort() as number[];
+            
+            if (memberIds.length === 2 && 
+                memberIds[0] === expectedIds[0] && 
+                memberIds[1] === expectedIds[1]) {
+              dmChannel = channel;
+              break;
+            }
+          } catch (err) {
+            // 멤버 조회 실패 시 다음 채널 확인
+            console.error(`[DM] Failed to get members for channel ${channel.id}:`, err);
+            continue;
+          }
+        }
+      }
+
+      if (dmChannel) {
+        // 기존 DM 채널이 있으면 바로 이동
+        router.push(`/chat/${dmChannel.id}`);
+      } else {
+        // DM 채널이 없으면 생성
+        // 채널 이름 형식: displayName1-displayName2-dm (표시 이름 사용)
+        const displayName1 = (user?.displayName || user?.username || '').toLowerCase().replace(/\s+/g, '-');
+        const displayName2 = (member.displayName || member.username || '').toLowerCase().replace(/\s+/g, '-');
+        const dmChannelName = `${displayName1}-${displayName2}-dm`;
+        
+        const newDMChannel = await channelsApi.create({
+          name: dmChannelName,
+          isDM: true,
+          recipientId: member.id,
+          isPublic: false,
+          description: `${user?.displayName || user?.username}와 ${member.displayName || member.username}의 DM`,
+        });
+        
+        // 생성 후 채팅 페이지로 이동
+        router.push(`/chat/${newDMChannel.id}`);
+      }
+    } catch (err: any) {
+      console.error('[DM Channel Error]', err);
+      setError(err.message || 'DM 채널 생성 또는 참여에 실패했습니다.');
+    } finally {
+      setCreatingDM(false);
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -408,11 +477,13 @@ export default function ChatPage() {
                     {members.map((member) => (
                       <div
                         key={member.id}
+                        onClick={() => handleMemberClick(member)}
                         className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
                           member.id === user?.id
-                            ? 'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800'
-                            : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                        }`}
+                            ? 'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 cursor-default'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer'
+                        } ${creatingDM ? 'opacity-50 pointer-events-none' : ''}`}
+                        title={member.id === user?.id ? '' : 'DM 시작하기'}
                       >
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-sm">
                           {(member.displayName || member.username || 'U').charAt(0).toUpperCase()}

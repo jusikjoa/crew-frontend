@@ -25,6 +25,7 @@ export interface Channel {
   name: string;
   description?: string;
   isPublic: boolean;
+  isDM?: boolean;
   createdBy: number;
   createdAt: string;
   updatedAt: string;
@@ -71,6 +72,8 @@ export interface CreateChannelRequest {
   name: string;
   description?: string;
   isPublic: boolean;
+  isDM?: boolean;
+  recipientId?: number | string;
   password?: string;
 }
 
