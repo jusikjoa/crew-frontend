@@ -489,14 +489,21 @@ export default function ChatPage() {
                           {(member.displayName || member.username || 'U').charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                            {member.displayName || member.username}
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                              {member.displayName || member.username}
+                            </p>
+                            {member.id === channel?.createdBy && (
+                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+                                주인
+                              </span>
+                            )}
                             {member.id === user?.id && (
-                              <span className="ml-2 text-xs text-indigo-600 dark:text-indigo-400">
+                              <span className="ml-1 text-xs text-indigo-600 dark:text-indigo-400">
                                 (나)
                               </span>
                             )}
-                          </p>
+                          </div>
                           {member.displayName && (
                             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                               @{member.username}
