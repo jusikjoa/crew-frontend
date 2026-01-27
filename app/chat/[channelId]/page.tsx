@@ -234,7 +234,7 @@ export default function ChatPage() {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push('/login'); 
   };
 
   const handleLeaveChannel = async () => {
