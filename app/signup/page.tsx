@@ -42,8 +42,10 @@ export default function SignupPage() {
     try {
       await signup(email, password, username, displayName || undefined);
       router.push('/channels');
-    } catch (err: any) {
-      setError(err.message || '회원가입에 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : '회원가입에 실패했습니다.';
+      setError(message);
     } finally {
       setLoading(false);
     }

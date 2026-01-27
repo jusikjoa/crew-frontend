@@ -11,7 +11,7 @@ export default function MyChannelsPage() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -28,8 +28,10 @@ export default function MyChannelsPage() {
       setLoading(true);
       const data = await channelsApi.getMyChannels();
       setChannels(data);
-    } catch (err: any) {
-      setError(err.message || '채널을 불러오는데 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : '채널을 불러오는데 실패했습니다.';
+      setError(message);
     } finally {
       setLoading(false);
     }

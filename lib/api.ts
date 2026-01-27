@@ -14,8 +14,8 @@ const WS_BASE_URL =
 
 export const WS_MESSAGES_URL = `${WS_BASE_URL}/messages`;
 
-// 개발 환경에서 API URL 확인용
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+// 개발 환경에서 API URL 확인용 (클라이언트 사이드에서만 실행)
+if (typeof window !== 'undefined' && typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
   console.log('[API] Base URL:', API_BASE_URL);
   console.log('[WebSocket] Messages URL:', WS_MESSAGES_URL);
 }
@@ -143,28 +143,35 @@ async function apiCall<T>(
       headers,
       mode: 'cors', // CORS 모드 명시
     });
-  } catch (fetchError: any) {
+  } catch (fetchError: unknown) {
     // 네트워크 오류 처리
-    console.error('[API Error]', {
-      url,
-      error: fetchError.message,
-      name: fetchError.name,
-      stack: fetchError.stack,
-    });
-    
-    if (fetchError.message === 'Failed to fetch' || fetchError.name === 'TypeError') {
-      throw new Error(
-        `백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요. (${API_BASE_URL})\n` +
-        `요청 URL: ${url}\n` +
-        `가능한 원인: CORS 설정 문제 또는 네트워크 연결 문제`
-      );
+    if (fetchError instanceof Error) {
+      console.error('[API Error]', {
+        url,
+        error: fetchError.message,
+        name: fetchError.name,
+        stack: fetchError.stack,
+      });
+      
+      if (fetchError.message === 'Failed to fetch' || fetchError.name === 'TypeError') {
+        throw new Error(
+          `백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요. (${API_BASE_URL})\n` +
+          `요청 URL: ${url}\n` +
+          `가능한 원인: CORS 설정 문제 또는 네트워크 연결 문제`
+        );
+      }
+    } else {
+      console.error('[API Error]', {
+        url,
+        error: fetchError,
+      });
     }
     throw fetchError;
   }
 
   if (!response.ok) {
     let errorMessage = `HTTP error! status: ${response.status}`;
-    let errorDetails: any = null;
+    let errorDetails: unknown = null;
     
     try {
       // 응답을 먼저 텍스트로 읽기
@@ -189,7 +196,7 @@ async function apiCall<T>(
           } else if (typeof errorData === 'string') {
             errorMessage = errorData;
           }
-        } catch (jsonError) {
+        } catch {
           // JSON이 아닌 경우 텍스트 그대로 사용
           errorMessage = text;
         }
@@ -219,7 +226,7 @@ async function apiCall<T>(
     }
     
     // 에러 객체에 상태 코드 추가
-    const error = new Error(errorMessage) as Error & { status?: number; errorDetails?: any };
+    const error = new Error(errorMessage) as Error & { status?: number; errorDetails?: unknown };
     error.status = response.status;
     error.errorDetails = errorDetails;
     throw error;

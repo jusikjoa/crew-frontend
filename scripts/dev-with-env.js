@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // .env.local 파일을 읽어서 개발 서버를 실행하는 스크립트
 const { spawn } = require('child_process');
 const fs = require('fs');

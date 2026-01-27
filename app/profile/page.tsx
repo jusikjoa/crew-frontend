@@ -12,7 +12,6 @@ export default function ProfilePage() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(true);
@@ -42,8 +41,12 @@ export default function ProfilePage() {
       setEmail(data.email);
       setUsername(data.username);
       setDisplayName(data.displayName || '');
-    } catch (err: any) {
-      setError(err.message || '사용자 정보를 불러오는데 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : '사용자 정보를 불러오는데 실패했습니다.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -70,8 +73,12 @@ export default function ProfilePage() {
       setUser(updatedUser);
       updateUser(updatedUser);
       setSuccess('프로필이 성공적으로 업데이트되었습니다.');
-    } catch (err: any) {
-      setError(err.message || '프로필 업데이트에 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : '프로필 업데이트에 실패했습니다.';
+      setError(message);
     } finally {
       setSaving(false);
     }
@@ -100,12 +107,15 @@ export default function ProfilePage() {
         password: newPassword,
       });
 
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setSuccess('비밀번호가 성공적으로 변경되었습니다.');
-    } catch (err: any) {
-      setError(err.message || '비밀번호 변경에 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : '비밀번호 변경에 실패했습니다.';
+      setError(message);
     } finally {
       setChangingPassword(false);
     }

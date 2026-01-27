@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { channelsApi, Channel } from '@/lib/api';
+import { channelsApi, Channel, UpdateChannelRequest } from '@/lib/api';
 import Link from 'next/link';
 
 export default function ChannelSettingsPage() {
@@ -51,8 +51,12 @@ export default function ChannelSettingsPage() {
         setLoading(false);
         return;
       }
-    } catch (err: any) {
-      setError(err.message || '채널 정보를 불러오는데 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : '채널 정보를 불러오는데 실패했습니다.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -66,7 +70,7 @@ export default function ChannelSettingsPage() {
     setError('');
 
     try {
-      const updateData: any = {
+      const updateData: UpdateChannelRequest = {
         name: name.trim(),
         description: description.trim() || undefined,
         isPublic,
@@ -77,12 +81,16 @@ export default function ChannelSettingsPage() {
         updateData.password = password.trim();
       }
       
-      const updatedChannel = await channelsApi.update(channelId, updateData);
+      await channelsApi.update(channelId, updateData);
       
       // 성공 시 채팅 페이지로 이동
       router.push(`/chat/${channelId}`);
-    } catch (err: any) {
-      setError(err.message || '채널 설정을 저장하는데 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : '채널 설정을 저장하는데 실패했습니다.';
+      setError(message);
     } finally {
       setSaving(false);
     }

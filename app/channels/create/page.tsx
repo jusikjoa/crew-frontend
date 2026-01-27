@@ -14,7 +14,7 @@ export default function CreateChannelPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const router = useRouter();
 
   if (!isAuthenticated) {
@@ -37,8 +37,10 @@ export default function CreateChannelPage() {
 
       const channel = await channelsApi.create(data);
       router.push(`/chat/${channel.id}`);
-    } catch (err: any) {
-      setError(err.message || '채널 생성에 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : '채널 생성에 실패했습니다.';
+      setError(message);
     } finally {
       setLoading(false);
     }
