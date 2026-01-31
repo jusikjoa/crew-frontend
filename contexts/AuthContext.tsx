@@ -26,7 +26,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedUser = localStorage.getItem('user');
       
       if (storedToken && storedUser) {
+        // 초기화 시에만 사용하는 효과로, ESLint 경고를 무시합니다.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setToken(storedToken);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUser(JSON.parse(storedUser));
       }
     }

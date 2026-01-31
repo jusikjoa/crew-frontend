@@ -32,8 +32,18 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError('비밀번호는 최소 6자 이상이어야 합니다.');
+    if (password.length < 8) {
+      setError('비밀번호는 최소 8자 이상이어야 합니다.');
+      return;
+    }
+
+    if (password.length > 100) {
+      setError('비밀번호는 100자 이하여야 합니다.');
+      return;
+    }
+
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      setError('비밀번호는 대문자, 소문자, 숫자를 각각 하나 이상 포함해야 합니다.');
       return;
     }
 
@@ -42,8 +52,10 @@ export default function SignupPage() {
     try {
       await signup(email, password, username, displayName || undefined);
       router.push('/channels');
-    } catch (err: any) {
-      setError(err.message || '회원가입에 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : '회원가입에 실패했습니다.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -125,8 +137,27 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-3 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all"
-                placeholder="비밀번호를 입력하세요 (최소 6자)"
+                placeholder="비밀번호를 입력하세요"
               />
+              <div className="mt-2 space-y-1">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                  비밀번호 조건
+                </p>
+                <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
+                  <li className={password.length >= 8 && password.length <= 100 ? 'text-green-600 dark:text-green-400' : ''}>
+                    {password.length >= 8 && password.length <= 100 ? '✓' : '○'} 8~100자
+                  </li>
+                  <li className={/[a-z]/.test(password) ? 'text-green-600 dark:text-green-400' : ''}>
+                    {/[a-z]/.test(password) ? '✓' : '○'} 소문자 1개 이상
+                  </li>
+                  <li className={/[A-Z]/.test(password) ? 'text-green-600 dark:text-green-400' : ''}>
+                    {/[A-Z]/.test(password) ? '✓' : '○'} 대문자 1개 이상
+                  </li>
+                  <li className={/\d/.test(password) ? 'text-green-600 dark:text-green-400' : ''}>
+                    {/\d/.test(password) ? '✓' : '○'} 숫자 1개 이상
+                  </li>
+                </ul>
+              </div>
             </div>
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">

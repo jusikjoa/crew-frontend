@@ -17,7 +17,7 @@ export default function ChannelsPage() {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState('');
   const [joinPassword, setJoinPassword] = useState('');
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -35,8 +35,10 @@ export default function ChannelsPage() {
       setLoading(true);
       const data = await channelsApi.getAll();
       setChannels(data);
-    } catch (err: any) {
-      setError(err.message || '채널을 불러오는데 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : '채널을 불러오는데 실패했습니다.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -46,7 +48,7 @@ export default function ChannelsPage() {
     try {
       const data = await channelsApi.getMyChannels();
       setMyChannels(data);
-    } catch (err: any) {
+    } catch {
       // 내 채널 목록 로드 실패는 무시 (선택적)
     }
   };
@@ -89,8 +91,10 @@ export default function ChannelsPage() {
       setJoinPassword(''); // 비밀번호 초기화
       // 채팅 페이지로 이동
       router.push(`/chat/${selectedChannel.id}`);
-    } catch (err: any) {
-      setJoinError(err.message || '채널 가입에 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : '채널 가입에 실패했습니다.';
+      setJoinError(message);
     } finally {
       setJoining(false);
     }

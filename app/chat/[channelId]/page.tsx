@@ -158,8 +158,12 @@ export default function ChatPage() {
       }
       const data = await channelsApi.getById(channelId);
       setChannel(data);
-    } catch (err: any) {
-      setError(err.message || '채널 정보를 불러오는데 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : '채널 정보를 불러오는데 실패했습니다.';
+      setError(message);
     }
   };
 
@@ -170,7 +174,7 @@ export default function ChatPage() {
       }
       const data = await channelsApi.getMembers(channelId);
       setMembers(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Members] Error:', err);
       // 멤버 목록 로드 실패는 치명적이지 않으므로 에러 표시하지 않음
     }
@@ -189,9 +193,13 @@ export default function ChatPage() {
       if (process.env.NODE_ENV === 'development') {
         console.log('[Messages] Loaded:', data.length, 'messages');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Messages] Error:', err);
-      setError(err.message || '메시지를 불러오는데 실패했습니다.');
+      const message =
+        err instanceof Error
+          ? err.message
+          : '메시지를 불러오는데 실패했습니다.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -213,8 +221,12 @@ export default function ChatPage() {
       if (!isConnected) {
         await fetchMessages();
       }
-    } catch (err: any) {
-      setError(err.message || '메시지 전송에 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : '메시지 전송에 실패했습니다.';
+      setError(message);
     } finally {
       setSending(false);
     }
@@ -222,7 +234,7 @@ export default function ChatPage() {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push('/login'); 
   };
 
   const handleLeaveChannel = async () => {
@@ -233,8 +245,12 @@ export default function ChatPage() {
     try {
       await channelsApi.leave(channelId);
       router.push('/channels');
-    } catch (err: any) {
-      setError(err.message || '채널 나가기에 실패했습니다.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : '채널 나가기에 실패했습니다.';
+      setError(message);
     }
   };
 
@@ -267,16 +283,24 @@ export default function ChatPage() {
       
       await channelsApi.delete(channelId);
       router.push('/channels');
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 에러 정보를 개별적으로 출력
       console.error('[Delete Channel Error] Full Error Object:', err);
-      console.error('[Delete Channel Error] Message:', err.message);
-      console.error('[Delete Channel Error] Status:', err.status);
-      console.error('[Delete Channel Error] Error Details:', err.errorDetails);
-      console.error('[Delete Channel Error] Stack:', err.stack);
+
+      interface ApiError extends Error {
+        status?: number;
+        errorDetails?: unknown;
+      }
+
+      const apiError = err as ApiError;
+
+      console.error('[Delete Channel Error] Message:', apiError.message);
+      console.error('[Delete Channel Error] Status:', apiError.status);
+      console.error('[Delete Channel Error] Error Details:', apiError.errorDetails);
+      console.error('[Delete Channel Error] Stack:', apiError.stack);
       
-      const status = err.status;
-      let errorMessage = err.message || '채널 삭제에 실패했습니다.';
+      const status = apiError.status;
+      let errorMessage = apiError.message || '채널 삭제에 실패했습니다.';
       
       // HTTP 상태 코드에 따라 적절한 메시지 표시
       if (status === 403) {
@@ -288,13 +312,13 @@ export default function ChatPage() {
       } else if (status === 500) {
         // 500 에러인 경우 더 자세한 정보 표시 (개발 환경에서)
         if (process.env.NODE_ENV === 'development') {
-          errorMessage = `서버 오류가 발생했습니다. (상태 코드: 500)\n\n상세 정보: ${err.message}\n\n콘솔을 확인하세요.`;
+          errorMessage = `서버 오류가 발생했습니다. (상태 코드: 500)\n\n상세 정보: ${apiError.message}\n\n콘솔을 확인하세요.`;
         } else {
           errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
         }
       } else if (errorMessage.includes('Internal server error')) {
         if (process.env.NODE_ENV === 'development') {
-          errorMessage = `서버 오류가 발생했습니다.\n\n상세 정보: ${err.message}\n\n콘솔을 확인하세요.`;
+          errorMessage = `서버 오류가 발생했습니다.\n\n상세 정보: ${apiError.message}\n\n콘솔을 확인하세요.`;
         } else {
           errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
         }
@@ -386,9 +410,13 @@ export default function ChatPage() {
         // 생성 후 채팅 페이지로 이동
         router.push(`/chat/${newDMChannel.id}`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[DM Channel Error]', err);
-      setError(err.message || 'DM 채널 생성 또는 참여에 실패했습니다.');
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'DM 채널 생성 또는 참여에 실패했습니다.';
+      setError(message);
     } finally {
       setCreatingDM(false);
     }
@@ -418,9 +446,13 @@ export default function ChatPage() {
       await fetchChannel();
       setShowMemberActionMenu(false);
       setSelectedMember(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Transfer Channel Error]', err);
-      setError(err.message || '채널 양도에 실패했습니다.');
+      const message =
+        err instanceof Error
+          ? err.message
+          : '채널 양도에 실패했습니다.';
+      setError(message);
     } finally {
       setTransferring(false);
     }

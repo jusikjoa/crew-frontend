@@ -15,6 +15,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // 초기 테마 로드 (localStorage 또는 시스템 설정)
+    if (typeof window === 'undefined') return;
+    
     const savedTheme = localStorage.getItem('theme');
     let shouldBeDark = false;
     
@@ -25,7 +27,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       shouldBeDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     
-    // state 업데이트
+    // state 업데이트 (초기화 목적의 1회성 효과이므로 ESLint 경고를 무시)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDark(shouldBeDark);
     
     // DOM 즉시 업데이트 - html 요소에 직접 클래스 추가/제거
@@ -38,15 +41,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     
     setMounted(true);
     
-    console.log('Initial theme loaded:', { 
-      savedTheme, 
-      shouldBeDark,
-      hasDarkClass: htmlElement.classList.contains('dark'),
-      htmlClasses: htmlElement.className
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Initial theme loaded:', { 
+        savedTheme, 
+        shouldBeDark,
+        hasDarkClass: htmlElement.classList.contains('dark'),
+        htmlClasses: htmlElement.className
+      });
+    }
   }, []);
 
   const toggleTheme = () => {
+    if (typeof window === 'undefined') return;
+    
     // 현재 state를 기반으로 토글
     const newIsDark = !isDark;
     
@@ -64,20 +71,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
     
     // 디버깅용 로그
-    console.log('Theme toggled:', { 
-      wasDark: isDark, 
-      nowDark: newIsDark,
-      hasDarkClass: htmlElement.classList.contains('dark'),
-      htmlClasses: htmlElement.className,
-      computedStyle: window.getComputedStyle(htmlElement).color
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Theme toggled:', { 
+        wasDark: isDark, 
+        nowDark: newIsDark,
+        hasDarkClass: htmlElement.classList.contains('dark'),
+        htmlClasses: htmlElement.className
+      });
+    }
   };
 
-  // 클라이언트에서만 렌더링 (SSR 하이드레이션 불일치 방지)
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // 항상 Provider를 제공하되, SSR 중에는 기본값 사용
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>
       {children}
