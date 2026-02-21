@@ -112,8 +112,10 @@ export interface UpdatePasswordRequest {
 // API 호출 헬퍼 함수
 async function apiCall<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit & { silent?: boolean } = {}
 ): Promise<T> {
+  const { silent, ...fetchOptions } = options;
+  options = fetchOptions;
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   
   const headers: Record<string, string> = {
@@ -206,23 +208,9 @@ async function apiCall<T>(
       console.error('[API] Failed to read error response:', textError);
     }
     
-    // 개발 환경에서 더 자세한 에러 정보 로깅
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.error('[API Error Details]', {
-        url,
-        method: options.method || 'GET',
-        status: response.status,
-        statusText: response.statusText,
-        errorMessage,
-        errorDetails,
-      });
-      // 각 필드를 개별적으로 출력하여 Object가 펼쳐지지 않는 경우를 대비
-      console.error('URL:', url);
-      console.error('Method:', options.method || 'GET');
-      console.error('Status:', response.status);
-      console.error('Status Text:', response.statusText);
-      console.error('Error Message:', errorMessage);
-      console.error('Error Details:', errorDetails);
+    // 개발 환경에서 더 자세한 에러 정보 로깅 (silent 옵션이 없는 경우만)
+    if (!silent && typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.error(`[API ${response.status}] ${options.method || 'GET'} ${url} — ${errorMessage}`);
     }
     
     // 에러 객체에 상태 코드 추가
@@ -263,7 +251,7 @@ export const channelsApi = {
   },
 
   getMyChannels: async (): Promise<Channel[]> => {
-    return apiCall<Channel[]>('/channels/my-channels');
+    return apiCall<Channel[]>('/channels/my-channels', { silent: true });
   },
 
   getById: async (id: number | string): Promise<Channel> => {
